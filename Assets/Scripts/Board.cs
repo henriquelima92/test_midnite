@@ -16,13 +16,15 @@ public class Tile
 }
 
 [Serializable]
-public struct Grid
+public class Grid
 {
     public Tile[,] Tiles;
 }
 
 public class Board : MonoBehaviour
 {
+    public Action OnGameEnd;
+
     private LevelController _levelController;
 
     private Grid _grid;
@@ -70,7 +72,7 @@ public class Board : MonoBehaviour
                     ingredientGO.name = $"Ingredient_{ingredientsList.Count - 1}";
                     ingredientGO.transform.localScale = tileProperties.Size;
 
-                    _grid.Tiles[x, y] = new Tile()
+                    _grid.Tiles[y, x] = new Tile()
                     {
                         Ingredient = ingredientGO,
                         Layers = 1,
@@ -86,7 +88,7 @@ public class Board : MonoBehaviour
                     continue;
                 }
 
-                _grid.Tiles[x, y] = new Tile()
+                _grid.Tiles[y, x] = new Tile()
                 {
                     Ingredient = null,
                     Layers = 0,
@@ -126,7 +128,7 @@ public class Board : MonoBehaviour
         Vector2Int baseIngredientIndex = GetIngredientIndex(ingredient);
         MoveIngredient(baseIngredientIndex, _draggingObjectIndex);
     }
-
+    // criar uma lista de GameObject dentro do Tile que são as layers e depois utilizar para verificar se os pães estão no começo e no fim
     private void MoveIngredient(Vector2Int baseIngredientIndex, Vector2Int draggingIngredientIndex)
     {
         bool isOnRightDirection = draggingIngredientIndex.x == (baseIngredientIndex.x - 1) && draggingIngredientIndex.y == baseIngredientIndex.y;
@@ -167,10 +169,52 @@ public class Board : MonoBehaviour
 
             draggingIngredientTile.Ingredient = null;
             _draggingObjectIndex = new Vector2Int(-1, -1);
+
+            CheckEndGame();
         }
         else
         {
             _draggingObjectIndex = new Vector2Int(-1, -1);
+        }
+    }
+
+    private void CheckEndGame()
+    {
+        var boardProperties = _levelController.Level.BoardProperties;
+
+        for (int y = 0; y < boardProperties.Dimensions.y; y++)
+        {
+            for (int x = 0; x < boardProperties.Dimensions.x; x++)
+            {
+                var tile = _grid.Tiles[y, x];
+                
+                if (tile.IsOccupied == true)
+                {
+                    var rightTileIndex = x + 1;
+                    if(rightTileIndex < boardProperties.Dimensions.x)
+                        if(_grid.Tiles[y, rightTileIndex].IsOccupied) 
+                            continue;
+
+                    var leftTileIndex = x - 1;
+                    if (leftTileIndex >= 0)
+                        if(_grid.Tiles[y, leftTileIndex].IsOccupied)
+                            continue;
+
+                    var topTileIndex = y - 1;
+                    if (topTileIndex >= 0)
+                        if (_grid.Tiles[topTileIndex, x].IsOccupied)
+                            continue;
+
+                    var downTileIndex = y + 1;
+                    if(downTileIndex < boardProperties.Dimensions.y)
+                        if(_grid.Tiles[downTileIndex, x].IsOccupied)
+                            continue;
+
+                    OnGameEnd?.Invoke();
+                    //Debug.Log("Game End Event Called!");
+                    return;
+                }
+            }
         }
     }
 
