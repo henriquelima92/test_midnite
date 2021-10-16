@@ -3,6 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
+public struct Tile
+{
+    public Vector3 Position;
+    public GameObject Ingredient;
+    public bool IsOccupied 
+    {  
+        get { return Ingredient != null; }
+    }
+}
+
+[Serializable]
+public struct Grid
+{
+    public Tile[,] Tiles;
+}
+
 public class Board : MonoBehaviour
 {
     [SerializeField] private Level _levelProperties;
@@ -11,7 +28,7 @@ public class Board : MonoBehaviour
     [SerializeField] private GameObject _board;
     [SerializeField] private GameObject _tilesRoot;
     
-    private GameObject[,] _tiles;
+    private Grid _grid;
 
     private void Start()
     {
@@ -25,6 +42,8 @@ public class Board : MonoBehaviour
 
     public void Initialize()
     {
+        _grid = new Grid();
+
         var boardProperties = _levelProperties.BoardProperties;
         var tileProperties = _levelProperties.TileProperties;
 
@@ -36,28 +55,46 @@ public class Board : MonoBehaviour
             x: (Mathf.Floor(boardProperties.Dimensions.X / 2) * tileSize.x) * -1, 
             y: 0f,
             z: Mathf.Floor(boardProperties.Dimensions.Y / 2) * tileSize.z);
-
-        _tiles = new GameObject[boardProperties.Dimensions.X, boardProperties.Dimensions.X];
+        _grid.Tiles = new Tile[boardProperties.Dimensions.X, boardProperties.Dimensions.Y];
 
         var ingredientsList = CreateIngredientList();
         for (int y = 0; y < boardProperties.Dimensions.Y; y++)
         {
             for (int x = 0; x < boardProperties.Dimensions.Y; x++)
             {
-                var position = new Vector3(startPosition.x + tileSize.x * x, startPosition.y + tileSize.y, startPosition.z - tileSize.z * y);
+                var position = new Vector3(startPosition.x + tileSize.x * x, 0f, startPosition.z - tileSize.z * y);
 
-                if(ingredientsList.Count > 0)
+                if (ingredientsList.Count > 0)
                 {
                     var ingredient = ingredientsList[0];
                     var ingredientGO = Instantiate(ingredient, position, Quaternion.identity, _tilesRoot.transform);
                     ingredientGO.transform.localScale = tileProperties.Size;
-                    _tiles[x, y] = ingredientGO;
 
+                    _grid.Tiles[x, y] = new Tile()
+                    {
+                        Ingredient = ingredientGO,
+                        Position = position
+                    };
+                    
                     ingredientsList.Remove(ingredient);
+
+                    Debug.Log($"GRID TILE: " +
+                    $"\n INGREDIENT {_grid.Tiles[x, y].Ingredient}" +
+                    $"\n POSITION {_grid.Tiles[x, y].Position}" +
+                    $"\n ISOCCUPIED {_grid.Tiles[x, y].IsOccupied}");
                     continue;
                 }
 
-                _tiles[x, y] = new GameObject();
+                _grid.Tiles[x, y] = new Tile()
+                {
+                    Ingredient = null,
+                    Position = position
+                };
+
+                Debug.Log($"GRID TILE: " +
+                    $"\n INGREDIENT {_grid.Tiles[x,y].Ingredient}" +
+                    $"\n POSITION {_grid.Tiles[x, y].Position}" +
+                    $"\n ISOCCUPIED {_grid.Tiles[x, y].IsOccupied}");
             }
         }
     }
