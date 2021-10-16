@@ -13,12 +13,13 @@ public struct TileProperties
 {
     public Vector3 Size;
     public Vector3 Spacing;
+    public float LayerOffset;
 }
 
 [Serializable]
 public struct BoardProperties
 {
-    public Dimension Dimensions;
+    public Vector2Int Dimensions;
     public int IngredientsAmount;
     public int BreadsAmount;
 

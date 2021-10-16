@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: Level0
   m_EditorClassIdentifier: 
   BoardProperties:
-    Dimensions:
-      X: 3
-      Y: 3
+    Dimensions: {x: 3, y: 3}
     IngredientsAmount: 3
     BreadsAmount: 2
     Background: {fileID: 5906876215074746987, guid: 85e87570ede7767488365d89637a4429, type: 3}
@@ -32,3 +30,4 @@ MonoBehaviour:
   TileProperties:
     Size: {x: 2.5, y: 2.5, z: 2.5}
     Spacing: {x: 0.5, y: 0.5, z: 0.5}
+    LayerOffset: 0.15
