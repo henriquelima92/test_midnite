@@ -13,6 +13,7 @@ public class Tile
         get { return Ingredient != null; }
     }
     public int Layers;
+    public List<string> LayerTypes;
 }
 
 [Serializable]
@@ -23,7 +24,7 @@ public class Grid
 
 public class Board : MonoBehaviour
 {
-    public Action OnGameEnd;
+    public Action<bool> OnGameEnd;
 
     private LevelController _levelController;
 
@@ -76,9 +77,10 @@ public class Board : MonoBehaviour
                     {
                         Ingredient = ingredientGO,
                         Layers = 1,
-                        Position = position
+                        Position = position,
+                        LayerTypes = new List<string>() { ingredient.name }
                     };
-                    
+
                     ingredientsList.Remove(ingredient);
 
                     //Debug.Log($"GRID TILE: " +
@@ -157,6 +159,8 @@ public class Board : MonoBehaviour
             draggingIngredient.transform.SetParent(baseIngredient.transform);
             draggingIngredient.transform.position = position;
 
+            baseIngredientTile.LayerTypes.AddRange(draggingIngredientTile.LayerTypes);
+
             draggingIngredientTile.Ingredient.GetComponent<Collider>().enabled = false;
             Destroy(draggingIngredientTile.Ingredient.GetComponent<ObjectHandler>());
 
@@ -210,12 +214,47 @@ public class Board : MonoBehaviour
                         if(_grid.Tiles[downTileIndex, x].IsOccupied)
                             continue;
 
-                    OnGameEnd?.Invoke();
-                    //Debug.Log("Game End Event Called!");
+                    var hasWin = HasWin();
+                    OnGameEnd?.Invoke(hasWin);
+                    Debug.Log($"Game End Event Called! WIN:{hasWin}");
                     return;
                 }
             }
         }
+    }
+
+    private bool HasWin()
+    {
+        var boardProperties = _levelController.Level.BoardProperties;
+
+        for (int y = 0; y < boardProperties.Dimensions.y; y++)
+        {
+            for (int x = 0; x < boardProperties.Dimensions.x; x++)
+            {
+
+                var tile = _grid.Tiles[y, x];
+
+                if (tile.IsOccupied)
+                {
+                    var firstLayer = tile.LayerTypes[0];
+                    var lastLayer = tile.LayerTypes[tile.LayerTypes.Count - 1];
+
+                    var layers = "LAYERS : ";
+                    for (int i = 0; i < tile.LayerTypes.Count; i++)
+                    {
+                        layers += $"\n {tile.LayerTypes[i]}";
+                    }
+
+                    Debug.Log(layers);
+
+                    if (firstLayer == "Bread" && lastLayer == "Bread")
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private Vector2Int GetIngredientIndex(GameObject ingredient)
