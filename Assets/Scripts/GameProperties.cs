@@ -21,18 +21,19 @@ public struct BoardProperties
 {
     public Vector2Int Dimensions;
     public int IngredientsAmount;
+    [Range(0, 3)]
     public int BreadsAmount;
 
     [Header("Prefabs")]
-    public GameObject Background;
-    public GameObject Bread;
-    public List<GameObject> Ingredients;
+    public GameObject BackgroundPrefab;
+    public GameObject BreadPrefab;
+    public List<GameObject> IngredientPrefabs;
 }
 
-[CreateAssetMenu(fileName = "Level", menuName = "Levels/Create", order = 1)]
-public class Level : ScriptableObject
+[CreateAssetMenu(fileName = "GameProperties", menuName = "GameProperties/Create", order = 1)]
+public class GameProperties : ScriptableObject
 {
-    public GameObject Slot;
+    public GameObject SlotPrefab;
 
     public BoardProperties BoardProperties;
     public TileProperties TileProperties;

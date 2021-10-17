@@ -4,6 +4,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
+public class SerializableLevel
+{
+    public List<GameObject> Ingredients;
+
+    public SerializableLevel()
+    {
+        Ingredients = new List<GameObject>();
+    }
+}
+
+[Serializable]
 public class Grid
 {
     public Slot[,] Slots;
@@ -36,7 +47,7 @@ public class Board : MonoBehaviour
         var boardProperties = levelProperties.BoardProperties;
         var tileProperties = levelProperties.TileProperties;
 
-        _board = Instantiate(boardProperties.Background);
+        _board = Instantiate(boardProperties.BackgroundPrefab);
         _slotsRoot = new GameObject("Slots");
 
         var tileSize = tileProperties.Size + tileProperties.Spacing;
@@ -49,7 +60,7 @@ public class Board : MonoBehaviour
         _ingredientsAmount = ingredients.Count;
         var ingredientsList = new List<GameObject>(ingredients);
 
-        var slotPrefab = levelProperties.Slot;
+        var slotPrefab = levelProperties.SlotPrefab;
         var slotCount = 0;
 
         for (int y = 0; y < boardProperties.Dimensions.y; y++)
@@ -68,11 +79,14 @@ public class Board : MonoBehaviour
                 if (ingredientsList.Count > 0)
                 {
                     var ingredient = ingredientsList[0];
-                    var ingredientGO = Instantiate(ingredient, position, Quaternion.identity, _slotsRoot.transform);
-                    ingredientGO.name = ingredient.name;
-                    ingredientGO.transform.localScale = tileProperties.Size;
+                    if(ingredient != null)
+                    {
+                        var ingredientGO = Instantiate(ingredient, position, Quaternion.identity, _slotsRoot.transform);
+                        ingredientGO.name = ingredient.name;
+                        ingredientGO.transform.localScale = tileProperties.Size;
 
-                    slot.AddIngredientToSlot(ingredientGO);
+                        slot.AddIngredientToSlot(ingredientGO);
+                    }
                     ingredientsList.Remove(ingredient);
 
                     //Debug.Log($"GRID TILE: " +

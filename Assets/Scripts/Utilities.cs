@@ -32,15 +32,39 @@ public static class Utilities
     {
         var list = new List<GameObject>();
 
-        for (int i = 0; i < boardProperties.IngredientsAmount; i++)
+        var slotsCount = boardProperties.Dimensions.x * boardProperties.Dimensions.y;
+        var fillingsCount = boardProperties.IngredientsAmount;
+        var breadsCount = boardProperties.BreadsAmount;
+
+        var itemsCount = fillingsCount + breadsCount;
+
+        for (int i = 0; i < itemsCount; i++)
         {
-            list.Add(GetRandomIndexInList(boardProperties.Ingredients));
+            if(fillingsCount > 0)
+            {
+                list.Add(GetRandomIndexInList(boardProperties.IngredientPrefabs));
+                fillingsCount -= 1;
+                continue;
+            }
+
+            if(breadsCount > 0)
+            {
+                list.Add(boardProperties.BreadPrefab);
+                breadsCount -= 1;
+            }
         }
-
+        
         list = ShuffleList(list);
-        list.Add(boardProperties.Bread);
-        list.Add(boardProperties.Bread);
 
+        var remainItems = slotsCount - itemsCount;
+
+        if(remainItems > 0)
+        {
+            for (int i = 0; i < remainItems; i++)
+            {
+                list.Add(null);
+            }
+        }
         return list;
     }
 }

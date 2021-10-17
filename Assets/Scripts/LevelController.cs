@@ -4,12 +4,15 @@ using UnityEngine;
 
 public class LevelController : MonoBehaviour
 {
-
-    public Level Level => _level;
+    public GameProperties Level => _level;
     public Board Board => _board;
+    public LevelSerializer LevelSerializer => _levelSerializer;
+    public List<GameObject> Ingredients => _ingredientsList;
 
+
+    [SerializeField] private LevelSerializer _levelSerializer;
     [SerializeField] private UIController _uiController;
-    [SerializeField] private Level _level;
+    [SerializeField] private GameProperties _level;
     [SerializeField] private Board _board;
 
     [SerializeField] private List<GameObject> _ingredientsList;
@@ -25,6 +28,13 @@ public class LevelController : MonoBehaviour
         _board.Initialize(_ingredientsList);
     }
 
+    private void DisposeLevel()
+    {
+        _uiController.Dispose();
+        _board.Dispose();
+        _ingredientsList.Clear();
+    }
+
     public void ResetLevel()
     {
         _uiController.Dispose();
@@ -34,11 +44,16 @@ public class LevelController : MonoBehaviour
 
     public void NewLevel()
     {
-        _uiController.Dispose();
-        _board.Dispose();
-        _ingredientsList.Clear();
+        DisposeLevel();
         _ingredientsList = Utilities.CreateIngredientList(_level.BoardProperties);
 
+        _board.Initialize(_ingredientsList);
+    }
+
+    public void NewLevel(List<GameObject> ingredients)
+    {
+        DisposeLevel();
+        _ingredientsList = ingredients;
         _board.Initialize(_ingredientsList);
     }
 }

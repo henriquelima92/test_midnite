@@ -7,8 +7,12 @@ public class UIController : MonoBehaviour
 {
     private LevelController _levelController;
 
+    [SerializeField] private UISerializerController _uiSerializerController;
+        
     [SerializeField] private Button _newLevel;
     [SerializeField] private Button _resetLevel;
+
+    
 
     [SerializeField] private TMPro.TextMeshProUGUI _victoryFeedback;
 
@@ -19,6 +23,8 @@ public class UIController : MonoBehaviour
 
     public void SetupDependecy(LevelController levelController)
     {
+        _uiSerializerController.SetupDependency(levelController);
+
         _levelController = levelController;
 
         _newLevel.onClick.RemoveAllListeners();

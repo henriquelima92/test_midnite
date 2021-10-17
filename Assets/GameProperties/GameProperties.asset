@@ -10,16 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05ea802077d513043a5e535c1562e0c6, type: 3}
-  m_Name: Level0
+  m_Name: GameProperties
   m_EditorClassIdentifier: 
-  Slot: {fileID: 7472087292799849270, guid: 1bc33d5485d08de4f82886ee360e8c3f, type: 3}
+  SlotPrefab: {fileID: 7472087292799849270, guid: 1bc33d5485d08de4f82886ee360e8c3f, type: 3}
   BoardProperties:
     Dimensions: {x: 4, y: 4}
-    IngredientsAmount: 14
+    IngredientsAmount: 7
     BreadsAmount: 2
-    Background: {fileID: 5906876215074746987, guid: 85e87570ede7767488365d89637a4429, type: 3}
-    Bread: {fileID: 5764962964242528906, guid: ca212ba2ffea07746aab6bf4ff657587, type: 3}
-    Ingredients:
+    BackgroundPrefab: {fileID: 5906876215074746987, guid: 85e87570ede7767488365d89637a4429, type: 3}
+    BreadPrefab: {fileID: 5764962964242528906, guid: ca212ba2ffea07746aab6bf4ff657587, type: 3}
+    IngredientPrefabs:
+    - {fileID: 2349296836677394995, guid: 6528793be95d08344afab74352046e4b, type: 3}
     - {fileID: 5182423098906426125, guid: ffac4a5abd22ed14997660b65eb474a1, type: 3}
     - {fileID: 2771137979078801217, guid: 5169a092c92b9d345981395a4e02e422, type: 3}
     - {fileID: 8265732863098003717, guid: 243c2ffa735decd44b80debd30986985, type: 3}
@@ -27,7 +28,6 @@ MonoBehaviour:
     - {fileID: 3283598592930568151, guid: 7c4871f7aba3bbb49b0ff1700591f30e, type: 3}
     - {fileID: 1591320745606148548, guid: a5be859b42ee60148b2bf3bf21cff14b, type: 3}
     - {fileID: 5201039960117518965, guid: eeb47fbdca0012042ac072df5477fde8, type: 3}
-    - {fileID: 2349296836677394995, guid: 6528793be95d08344afab74352046e4b, type: 3}
   TileProperties:
     Size: {x: 2.5, y: 2.5, z: 2.5}
     Spacing: {x: 0.5, y: 0.5, z: 0.5}
