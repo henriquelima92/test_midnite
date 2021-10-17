@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ea802077d513043a5e535c1562e0c6, type: 3}
   m_Name: Level0
   m_EditorClassIdentifier: 
+  Slot: {fileID: 7472087292799849270, guid: 1bc33d5485d08de4f82886ee360e8c3f, type: 3}
   BoardProperties:
     Dimensions: {x: 3, y: 3}
     IngredientsAmount: 3
@@ -30,4 +31,4 @@ MonoBehaviour:
   TileProperties:
     Size: {x: 2.5, y: 2.5, z: 2.5}
     Spacing: {x: 0.5, y: 0.5, z: 0.5}
-    LayerOffset: 0.15
+    LayerOffset: 0.5

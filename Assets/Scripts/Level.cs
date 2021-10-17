@@ -32,6 +32,8 @@ public struct BoardProperties
 [CreateAssetMenu(fileName = "Level", menuName = "Levels/Create", order = 1)]
 public class Level : ScriptableObject
 {
+    public GameObject Slot;
+
     public BoardProperties BoardProperties;
     public TileProperties TileProperties;
 }

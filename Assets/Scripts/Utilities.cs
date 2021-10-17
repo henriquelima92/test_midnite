@@ -8,7 +8,6 @@ public static class Utilities
     {
         return listOfObjects[Random.Range(0, listOfObjects.Count - 1)];
     }
-
     public static List<T> ShuffleList<T>(List<T> original)
     {
         List<T> shuffledList = new List<T>(original.Count);
@@ -27,5 +26,21 @@ public static class Utilities
         }
 
         return shuffledList;
+    }
+
+    public static List<GameObject> CreateIngredientList(BoardProperties boardProperties)
+    {
+        var list = new List<GameObject>();
+
+        for (int i = 0; i < boardProperties.IngredientsAmount; i++)
+        {
+            list.Add(GetRandomIndexInList(boardProperties.Ingredients));
+        }
+
+        list = ShuffleList(list);
+        list.Add(boardProperties.Bread);
+        list.Add(boardProperties.Bread);
+
+        return list;
     }
 }

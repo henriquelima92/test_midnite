@@ -4,22 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class Tile
-{
-    public Vector3 Position;
-    public GameObject Ingredient;
-    public bool IsOccupied 
-    {  
-        get { return Ingredient != null; }
-    }
-    public int Layers;
-    public List<string> LayerTypes;
-}
-
-[Serializable]
 public class Grid
 {
-    public Tile[,] Tiles;
+    public Slot[,] Slots;
 }
 
 public class Board : MonoBehaviour
@@ -33,13 +20,14 @@ public class Board : MonoBehaviour
     private GameObject _board;
     private GameObject _tilesRoot;
     
-    private Vector2Int _draggingObjectIndex = new Vector2Int(-1, -1);
+    [SerializeField] private Vector2Int _draggingObjectIndex = new Vector2Int(-1, -1);
+    [SerializeField] private int _ingredientsAmount;
 
     public void SetupDependency(LevelController levelController)
     {
         _levelController = levelController;
     }
-    public void Initialize()
+    public void Initialize(List<GameObject> ingredientsList)
     {
         _grid = new Grid();
 
@@ -49,88 +37,57 @@ public class Board : MonoBehaviour
         var tileProperties = levelProperties.TileProperties;
 
         _board = Instantiate(boardProperties.Background);
-        _tilesRoot = new GameObject("Tiles");
+        _tilesRoot = new GameObject("Slots");
 
         var tileSize = tileProperties.Size + tileProperties.Spacing;
         Vector3 startPosition = new Vector3(
             x: (Mathf.Floor(boardProperties.Dimensions.x / 2) * tileSize.x) * -1, 
             y: 0f,
             z: Mathf.Floor(boardProperties.Dimensions.y / 2) * tileSize.z);
-        _grid.Tiles = new Tile[boardProperties.Dimensions.x, boardProperties.Dimensions.y];
+        _grid.Slots = new Slot[boardProperties.Dimensions.x, boardProperties.Dimensions.y];
 
-        var ingredientsList = CreateIngredientList();
+        _ingredientsAmount = ingredientsList.Count;
+
+        var slotPrefab = levelProperties.Slot;
+        var slotCount = 0;
+
         for (int y = 0; y < boardProperties.Dimensions.y; y++)
         {
             for (int x = 0; x < boardProperties.Dimensions.x; x++)
             {
                 var position = new Vector3(startPosition.x + tileSize.x * x, 0f, startPosition.z - tileSize.z * y);
+                var slotGO = Instantiate(slotPrefab, position, Quaternion.identity, _tilesRoot.transform);
+                slotGO.name = $"{slotPrefab.name}_{slotCount}";
+                slotCount += 1;
+
+                Slot slot = slotGO.GetComponent<Slot>();
+                slot.SetupDependency(tileProperties, this);
+                _grid.Slots[y, x] = slot;
 
                 if (ingredientsList.Count > 0)
                 {
                     var ingredient = ingredientsList[0];
                     var ingredientGO = Instantiate(ingredient, position, Quaternion.identity, _tilesRoot.transform);
-                    ingredientGO.GetComponent<ObjectHandler>().SetupDepdency(this);
-                    ingredientGO.name = $"Ingredient_{ingredientsList.Count - 1}";
+                    ingredientGO.name = ingredient.name;
                     ingredientGO.transform.localScale = tileProperties.Size;
 
-                    _grid.Tiles[y, x] = new Tile()
-                    {
-                        Ingredient = ingredientGO,
-                        Layers = 1,
-                        Position = position,
-                        LayerTypes = new List<string>() { ingredient.name }
-                    };
-
+                    slot.AddIngredientToSlot(ingredientGO);
                     ingredientsList.Remove(ingredient);
 
                     //Debug.Log($"GRID TILE: " +
                     //$"\n INGREDIENT {_grid.Tiles[x, y].Ingredient}" +
                     //$"\n POSITION {_grid.Tiles[x, y].Position}" +
                     //$"\n ISOCCUPIED {_grid.Tiles[x, y].IsOccupied}");
-                    continue;
                 }
 
-                _grid.Tiles[y, x] = new Tile()
-                {
-                    Ingredient = null,
-                    Layers = 0,
-                    Position = position
-                };
-
-                //Debug.Log($"GRID TILE: " +
-                //    $"\n INGREDIENT {_grid.Tiles[x,y].Ingredient}" +
-                //    $"\n POSITION {_grid.Tiles[x, y].Position}" +
-                //    $"\n ISOCCUPIED {_grid.Tiles[x, y].IsOccupied}");
+                ////Debug.Log($"GRID TILE: " +
+                ////    $"\n INGREDIENT {_grid.Tiles[x,y].Ingredient}" +
+                ////    $"\n POSITION {_grid.Tiles[x, y].Position}" +
+                ////    $"\n ISOCCUPIED {_grid.Tiles[x, y].IsOccupied}");
             }
         }
     }
 
-    public void OnPointerDown(GameObject ingredient)
-    {
-        if (ingredient == null)
-        {
-            _draggingObjectIndex = new Vector2Int(-1, -1);
-            return;
-        }
-
-        _draggingObjectIndex = GetIngredientIndex(ingredient);
-
-        //Debug.Log($"OnPointerDown {ingredient.name}");
-    }
-    public void OnPointerUp(GameObject ingredient)
-    {
-        if (ingredient == null)
-        {
-            _draggingObjectIndex = new Vector2Int(-1, -1);
-            return;
-        }
-
-        //Debug.Log($"OnPointerUp {ingredient.name}");
-        
-        Vector2Int baseIngredientIndex = GetIngredientIndex(ingredient);
-        MoveIngredient(baseIngredientIndex, _draggingObjectIndex);
-    }
-    // criar uma lista de GameObject dentro do Tile que são as layers e depois utilizar para verificar se os pães estão no começo e no fim
     private void MoveIngredient(Vector2Int baseIngredientIndex, Vector2Int draggingIngredientIndex)
     {
         bool isOnRightDirection = draggingIngredientIndex.x == (baseIngredientIndex.x - 1) && draggingIngredientIndex.y == baseIngredientIndex.y;
@@ -145,33 +102,12 @@ public class Board : MonoBehaviour
 
         if (isOnRightDirection || isOnLeftDirection || isOnUpDirection || isOnDownDirection)
         {
-            Tile baseIngredientTile = _grid.Tiles[baseIngredientIndex.x, baseIngredientIndex.y];
-            Tile draggingIngredientTile = _grid.Tiles[draggingIngredientIndex.x, draggingIngredientIndex.y];
-            baseIngredientTile.Layers += 1;
+            Slot baseSlot = _grid.Slots[baseIngredientIndex.x, baseIngredientIndex.y];
+            Slot draggingSlot = _grid.Slots[draggingIngredientIndex.x, draggingIngredientIndex.y];
 
-            var baseIngredient = baseIngredientTile.Ingredient;
-            var draggingIngredient = _grid.Tiles[draggingIngredientIndex.x, draggingIngredientIndex.y].Ingredient;
+            baseSlot.AddIngredientToStack(draggingSlot);
+            draggingSlot.ClearStack();
 
-            var layerOffset = _levelController.Level.TileProperties.LayerOffset;
-            var layerHeight = baseIngredientTile.Layers * layerOffset;
-            var position = baseIngredient.transform.position + new Vector3(0f, layerHeight, 0f);
-
-            draggingIngredient.transform.SetParent(baseIngredient.transform);
-            draggingIngredient.transform.position = position;
-
-            baseIngredientTile.LayerTypes.AddRange(draggingIngredientTile.LayerTypes);
-
-            draggingIngredientTile.Ingredient.GetComponent<Collider>().enabled = false;
-            Destroy(draggingIngredientTile.Ingredient.GetComponent<ObjectHandler>());
-
-            //Debug.Log($"BASE TILE: " +
-            //$"\n INGREDIENT {baseIngredientTile.Ingredient}" +
-            //$"\n POSITION {baseIngredientTile.Position}" +
-            //$"\n ISOCCUPIED {baseIngredientTile.IsOccupied}" +
-            //$"\n LAYERS {baseIngredientTile.Layers}");
-
-
-            draggingIngredientTile.Ingredient = null;
             _draggingObjectIndex = new Vector2Int(-1, -1);
 
             CheckEndGame();
@@ -181,7 +117,6 @@ public class Board : MonoBehaviour
             _draggingObjectIndex = new Vector2Int(-1, -1);
         }
     }
-
     private void CheckEndGame()
     {
         var boardProperties = _levelController.Level.BoardProperties;
@@ -190,28 +125,28 @@ public class Board : MonoBehaviour
         {
             for (int x = 0; x < boardProperties.Dimensions.x; x++)
             {
-                var tile = _grid.Tiles[y, x];
-                
+                var tile = _grid.Slots[y, x];
+
                 if (tile.IsOccupied == true)
                 {
                     var rightTileIndex = x + 1;
-                    if(rightTileIndex < boardProperties.Dimensions.x)
-                        if(_grid.Tiles[y, rightTileIndex].IsOccupied) 
+                    if (rightTileIndex < boardProperties.Dimensions.x)
+                        if (_grid.Slots[y, rightTileIndex].IsOccupied)
                             continue;
 
                     var leftTileIndex = x - 1;
                     if (leftTileIndex >= 0)
-                        if(_grid.Tiles[y, leftTileIndex].IsOccupied)
+                        if (_grid.Slots[y, leftTileIndex].IsOccupied)
                             continue;
 
                     var topTileIndex = y - 1;
                     if (topTileIndex >= 0)
-                        if (_grid.Tiles[topTileIndex, x].IsOccupied)
+                        if (_grid.Slots[topTileIndex, x].IsOccupied)
                             continue;
 
                     var downTileIndex = y + 1;
-                    if(downTileIndex < boardProperties.Dimensions.y)
-                        if(_grid.Tiles[downTileIndex, x].IsOccupied)
+                    if (downTileIndex < boardProperties.Dimensions.y)
+                        if (_grid.Slots[downTileIndex, x].IsOccupied)
                             continue;
 
                     var hasWin = HasWin();
@@ -222,7 +157,6 @@ public class Board : MonoBehaviour
             }
         }
     }
-
     private bool HasWin()
     {
         var boardProperties = _levelController.Level.BoardProperties;
@@ -231,39 +165,40 @@ public class Board : MonoBehaviour
         {
             for (int x = 0; x < boardProperties.Dimensions.x; x++)
             {
+                var slot = _grid.Slots[y, x];
 
-                var tile = _grid.Tiles[y, x];
-
-                if (tile.IsOccupied)
+                if (slot.IsOccupied)
                 {
-                    var firstLayer = tile.LayerTypes[0];
-                    var lastLayer = tile.LayerTypes[tile.LayerTypes.Count - 1];
+                    var firstLayer = slot.Stack[0];
+                    var lastLayer = slot.GetLastStackedItem();
 
                     var layers = "LAYERS : ";
-                    for (int i = 0; i < tile.LayerTypes.Count; i++)
+                    for (int i = 0; i < slot.Stack.Count; i++)
                     {
-                        layers += $"\n {tile.LayerTypes[i]}";
+                        layers += $"\n {slot.Stack[i].name}";
                     }
 
                     Debug.Log(layers);
-
-                    if (firstLayer == "Bread" && lastLayer == "Bread")
+                    if(slot.Stack.Count > 1 && (slot.Stack.Count == _ingredientsAmount))
                     {
-                        return true;
+                        if (firstLayer.name == "Bread" && lastLayer.name == "Bread")
+                        {
+                            return true;
+                        }
                     }
                 }
             }
         }
         return false;
     }
-
-    private Vector2Int GetIngredientIndex(GameObject ingredient)
+    private Vector2Int GetIngredientIndex(Slot slot)
     {
-        for (int x = 0; x < _grid.Tiles.GetLength(0); x++)
+        for (int x = 0; x < _grid.Slots.GetLength(0); x++)
         {
-            for (int y = 0; y < _grid.Tiles.GetLength(1); y++)
+            for (int y = 0; y < _grid.Slots.GetLength(1); y++)
             {
-                if(_grid.Tiles[x, y].Ingredient == ingredient)
+                var item = _grid.Slots[x, y].GetLastStackedItem();
+                if(item != null && item == slot.GetLastStackedItem())
                 {
                     return new Vector2Int(x, y);
                 }
@@ -272,20 +207,28 @@ public class Board : MonoBehaviour
 
         return new Vector2Int(-1, -1);
     }
-    private List<GameObject> CreateIngredientList()
+    
+    #region CALLBACK EVENTS
+    public void OnPointerDown(Slot slot)
     {
-        var boardProperties = _levelController.Level.BoardProperties;
-        var list = new List<GameObject>();
-
-        for (int i = 0; i < boardProperties.IngredientsAmount; i++)
+        if (slot == null)
         {
-            list.Add(Utilities.GetRandomIndexInList(boardProperties.Ingredients));
+            _draggingObjectIndex = new Vector2Int(-1, -1);
+            return;
         }
 
-        list = Utilities.ShuffleList(list);
-        list.Insert(0, boardProperties.Bread);
-        list.Add(boardProperties.Bread);
-
-        return list;
+        _draggingObjectIndex = GetIngredientIndex(slot);
     }
+    public void OnPointerUp(Slot slot)
+    {
+        if (slot == null)
+        {
+            _draggingObjectIndex = new Vector2Int(-1, -1);
+            return;
+        }
+
+        Vector2Int baseIngredientIndex = GetIngredientIndex(slot);
+        MoveIngredient(baseIngredientIndex, _draggingObjectIndex);
+    }
+    #endregion
 }

@@ -8,6 +8,7 @@ public class LevelController : MonoBehaviour
     [SerializeField] private Level _level;
     [SerializeField] private Board _board;
 
+    [SerializeField] private List<GameObject> _ingredientsList;
 
     private void Awake()
     {
@@ -15,6 +16,7 @@ public class LevelController : MonoBehaviour
     }
     private void Start()
     {
-        _board.Initialize();
+        _ingredientsList = Utilities.CreateIngredientList(_level.BoardProperties);
+        _board.Initialize(_ingredientsList);
     }
 }
