@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4decbff22929f944788bde181108beb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _levelSerializer: {fileID: 0}
   _uiController: {fileID: 0}
   _level: {fileID: 11400000, guid: a045fdeb2f506384ea77e7df4738f004, type: 2}
   _board: {fileID: 7171936521258234757}
