@@ -18,16 +18,16 @@ public class Board : MonoBehaviour
     private Grid _grid;
     
     private GameObject _board;
-    private GameObject _tilesRoot;
+    private GameObject _slotsRoot;
     
-    [SerializeField] private Vector2Int _draggingObjectIndex = new Vector2Int(-1, -1);
-    [SerializeField] private int _ingredientsAmount;
+    private Vector2Int _draggingObjectIndex = new Vector2Int(-1, -1);
+    private int _ingredientsAmount = 0;
 
     public void SetupDependency(LevelController levelController)
     {
         _levelController = levelController;
     }
-    public void Initialize(List<GameObject> ingredientsList)
+    public void Initialize(List<GameObject> ingredients)
     {
         _grid = new Grid();
 
@@ -37,7 +37,7 @@ public class Board : MonoBehaviour
         var tileProperties = levelProperties.TileProperties;
 
         _board = Instantiate(boardProperties.Background);
-        _tilesRoot = new GameObject("Slots");
+        _slotsRoot = new GameObject("Slots");
 
         var tileSize = tileProperties.Size + tileProperties.Spacing;
         Vector3 startPosition = new Vector3(
@@ -46,7 +46,8 @@ public class Board : MonoBehaviour
             z: Mathf.Floor(boardProperties.Dimensions.y / 2) * tileSize.z);
         _grid.Slots = new Slot[boardProperties.Dimensions.x, boardProperties.Dimensions.y];
 
-        _ingredientsAmount = ingredientsList.Count;
+        _ingredientsAmount = ingredients.Count;
+        var ingredientsList = new List<GameObject>(ingredients);
 
         var slotPrefab = levelProperties.Slot;
         var slotCount = 0;
@@ -56,7 +57,7 @@ public class Board : MonoBehaviour
             for (int x = 0; x < boardProperties.Dimensions.x; x++)
             {
                 var position = new Vector3(startPosition.x + tileSize.x * x, 0f, startPosition.z - tileSize.z * y);
-                var slotGO = Instantiate(slotPrefab, position, Quaternion.identity, _tilesRoot.transform);
+                var slotGO = Instantiate(slotPrefab, position, Quaternion.identity, _slotsRoot.transform);
                 slotGO.name = $"{slotPrefab.name}_{slotCount}";
                 slotCount += 1;
 
@@ -67,7 +68,7 @@ public class Board : MonoBehaviour
                 if (ingredientsList.Count > 0)
                 {
                     var ingredient = ingredientsList[0];
-                    var ingredientGO = Instantiate(ingredient, position, Quaternion.identity, _tilesRoot.transform);
+                    var ingredientGO = Instantiate(ingredient, position, Quaternion.identity, _slotsRoot.transform);
                     ingredientGO.name = ingredient.name;
                     ingredientGO.transform.localScale = tileProperties.Size;
 
@@ -86,6 +87,16 @@ public class Board : MonoBehaviour
                 ////    $"\n ISOCCUPIED {_grid.Tiles[x, y].IsOccupied}");
             }
         }
+    }
+
+    public void Dispose()
+    {
+        Destroy(_board);
+        Destroy(_slotsRoot);
+
+        _grid = new Grid();
+        _draggingObjectIndex = new Vector2Int(-1, -1);
+        _ingredientsAmount = 0;
     }
 
     private void MoveIngredient(Vector2Int baseIngredientIndex, Vector2Int draggingIngredientIndex)
@@ -151,7 +162,7 @@ public class Board : MonoBehaviour
 
                     var hasWin = HasWin();
                     OnGameEnd?.Invoke(hasWin);
-                    Debug.Log($"Game End Event Called! WIN:{hasWin}");
+                    //Debug.Log($"Game End Event Called! WIN:{hasWin}");
                     return;
                 }
             }
@@ -172,13 +183,13 @@ public class Board : MonoBehaviour
                     var firstLayer = slot.Stack[0];
                     var lastLayer = slot.GetLastStackedItem();
 
-                    var layers = "LAYERS : ";
-                    for (int i = 0; i < slot.Stack.Count; i++)
-                    {
-                        layers += $"\n {slot.Stack[i].name}";
-                    }
+                    //var layers = "LAYERS : ";
+                    //for (int i = 0; i < slot.Stack.Count; i++)
+                    //{
+                    //    layers += $"\n {slot.Stack[i].name}";
+                    //}
 
-                    Debug.Log(layers);
+                    //Debug.Log(layers);
                     if(slot.Stack.Count > 1 && (slot.Stack.Count == _ingredientsAmount))
                     {
                         if (firstLayer.name == "Bread" && lastLayer.name == "Bread")

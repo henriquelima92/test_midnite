@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Slot: {fileID: 7472087292799849270, guid: 1bc33d5485d08de4f82886ee360e8c3f, type: 3}
   BoardProperties:
-    Dimensions: {x: 3, y: 3}
-    IngredientsAmount: 3
+    Dimensions: {x: 4, y: 4}
+    IngredientsAmount: 14
     BreadsAmount: 2
     Background: {fileID: 5906876215074746987, guid: 85e87570ede7767488365d89637a4429, type: 3}
     Bread: {fileID: 5764962964242528906, guid: ca212ba2ffea07746aab6bf4ff657587, type: 3}
