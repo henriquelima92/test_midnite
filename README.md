@@ -32,8 +32,8 @@ Added win/loss text feedbacks
 
 What can be improved:
  
-Creation of animation to rotate the ingredient layers. Currently the layers are only repositioned,
-giving the impression that the sandwich is being rotated.
- Improvements in level randomization.
- Use audio feedback.
-Improve the camera to follow the game properties changes.
+- Creation of animation to rotate the ingredient layers. 
+- Currently the layers are only repositioned, giving the impression that the sandwich is being rotated.
+- Improvements in level randomization.
+- Create audio feedback.
+- Improve the camera to follow the game properties changes.
